@@ -5,124 +5,133 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0B0D16">
-
+  <meta name="description" content="ORBIT — твоя вселенная общения.">
   <title>ORBIT — Connect. Communicate. Create.</title>
-
-  <meta
-    name="description"
-    content="ORBIT — твоя вселенная общения. Создавай сообщества, общайся и оставайся на связи."
-  >
-
   <link rel="stylesheet" href="style.css">
-
   <script type="module" src="app.js"></script>
 </head>
 
 <body>
-
-  <!-- HEADER -->
   <header class="header">
-
     <a class="logo" href="#">ORBIT<span>.</span></a>
-
     <nav>
       <a href="#features">Возможности</a>
       <a href="#about">О проекте</a>
     </nav>
-
     <a class="login-link" href="#login">Войти</a>
-
   </header>
 
-
-  <!-- HERO -->
   <main>
-
     <section class="hero">
-
       <div class="orb orb-one"></div>
       <div class="orb orb-two"></div>
 
-      <p class="eyebrow">
-        YOUR SPACE. YOUR COMMUNITY.
-      </p>
-
-      <h1>
-        Твоя вселенная<br>
-        <span>общения.</span>
-      </h1>
-
+      <p class="eyebrow">YOUR SPACE. YOUR COMMUNITY.</p>
+      <h1>Твоя вселенная<br><span>общения.</span></h1>
       <p class="description">
         Общайся, создавай сообщества и оставайся на связи.
         Всё необходимое — в одном пространстве.
       </p>
-
       <a class="primary-button" href="#login">
         Начать путешествие <span>→</span>
       </a>
-
-      <p class="slogan">
-        CONNECT. COMMUNICATE. CREATE.
-      </p>
-
+      <p class="slogan">CONNECT. COMMUNICATE. CREATE.</p>
     </section>
 
-
-    <!-- FEATURES -->
     <section id="features" class="features">
-
       <h2>Всё для твоего общения</h2>
-
       <div class="feature-grid">
-
         <article class="feature">
           <span>✦</span>
           <h3>Сообщества</h3>
-          <p>
-            Создавай собственные пространства
-            и собирай друзей.
-          </p>
+          <p>Создавай собственные пространства и собирай друзей.</p>
         </article>
-
         <article class="feature">
           <span>◉</span>
           <h3>Общение</h3>
-          <p>
-            Переписывайся и делись идеями
-            в реальном времени.
-          </p>
+          <p>Переписывайся и делись идеями в реальном времени.</p>
         </article>
-
         <article class="feature">
           <span>⌁</span>
           <h3>Голос и видео</h3>
-          <p>
-            Будь ближе к людям, где бы
-            они ни находились.
-          </p>
+          <p>Будь ближе к людям, где бы они ни находились.</p>
         </article>
-
       </div>
-
     </section>
 
+    <!-- AUTHENTICATION -->
+    <section id="login" class="auth-section">
+      <div class="auth-card">
+        <div class="auth-logo">ORBIT<span>.</span></div>
+
+        <h2 id="auth-title">Добро пожаловать</h2>
+        <p id="auth-subtitle">Войди в свою вселенную общения</p>
+
+        <form id="auth-form">
+          <div id="name-group" class="auth-field" hidden>
+            <label for="display-name">Твоё имя</label>
+            <input
+              id="display-name"
+              type="text"
+              placeholder="Например, Alex"
+              maxlength="40"
+              autocomplete="name"
+            >
+          </div>
+
+          <div class="auth-field">
+            <label for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              autocomplete="email"
+              required
+            >
+          </div>
+
+          <div class="auth-field" id="password-group">
+            <label for="password">Пароль</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="Минимум 8 символов"
+              minlength="8"
+              autocomplete="current-password"
+              required
+            >
+          </div>
+
+          <button id="auth-submit" class="auth-submit" type="submit">
+            Войти
+          </button>
+        </form>
+
+        <button id="forgot-password" class="auth-text-button" type="button">
+          Забыли пароль?
+        </button>
+
+        <p id="auth-message" class="auth-message" role="status" aria-live="polite"></p>
+
+        <div class="auth-switch">
+          <span id="switch-text">Нет аккаунта?</span>
+          <button id="switch-mode" type="button">Создать аккаунт</button>
+        </div>
+
+        <div id="user-panel" hidden>
+          <p id="user-email"></p>
+          <button id="logout-button" class="auth-submit" type="button">
+            Выйти из аккаунта
+          </button>
+        </div>
+      </div>
+    </section>
   </main>
 
-
-  <!-- FOOTER -->
   <footer id="about">
-
     <div class="logo">ORBIT<span>.</span></div>
-
-    <p>
-      CONNECT. COMMUNICATE. CREATE.
-    </p>
-
-    <p>
-      © 2026 ORBIT. All rights reserved.
-    </p>
-
+    <p>CONNECT. COMMUNICATE. CREATE.</p>
+    <p>© 2026 ORBIT. All rights reserved.</p>
   </footer>
-
 </body>
 </html>
