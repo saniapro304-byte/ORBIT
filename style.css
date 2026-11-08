@@ -1,0 +1,276 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #0B0D16;
+  color: #F8FAFC;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* HEADER */
+
+.header {
+  width: 100%;
+  height: 85px;
+  padding: 0 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+  z-index: 5;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+
+.logo span {
+  color: #8B5CF6;
+}
+
+.header nav {
+  display: flex;
+  gap: 35px;
+}
+
+.header nav a {
+  color: #A1A1AA;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.header nav a:hover {
+  color: #38BDF8;
+}
+
+.login-link {
+  padding: 11px 25px;
+  border: 1px solid #8B5CF6;
+  border-radius: 25px;
+  transition: 0.3s;
+}
+
+.login-link:hover {
+  background: #8B5CF6;
+  box-shadow: 0 0 25px rgba(139,92,246,0.4);
+}
+
+/* HERO */
+
+.hero {
+  min-height: 650px;
+  padding: 140px 20px 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.eyebrow {
+  color: #38BDF8;
+  font-size: 12px;
+  letter-spacing: 5px;
+  margin-bottom: 28px;
+}
+
+.hero h1 {
+  font-size: clamp(48px, 8vw, 88px);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -3px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero h1 span {
+  background: linear-gradient(90deg, #8B5CF6, #38BDF8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.description {
+  max-width: 520px;
+  margin-top: 28px;
+  color: #A1A1AA;
+  font-size: 17px;
+  line-height: 1.8;
+  position: relative;
+  z-index: 2;
+}
+
+.primary-button {
+  margin-top: 38px;
+  padding: 17px 32px;
+  border-radius: 30px;
+  background: linear-gradient(100deg, #8B5CF6, #6366F1);
+  font-weight: 700;
+  transition: 0.3s;
+  position: relative;
+  z-index: 2;
+}
+
+.primary-button span {
+  margin-left: 12px;
+}
+
+.primary-button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 35px rgba(139,92,246,0.35);
+}
+
+.slogan {
+  margin-top: 65px;
+  color: #52556A;
+  font-size: 11px;
+  letter-spacing: 5px;
+}
+
+/* COSMIC GLOW */
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.orb-one {
+  width: 350px;
+  height: 350px;
+  background: #7C3AED;
+  top: 50px;
+  left: -150px;
+}
+
+.orb-two {
+  width: 300px;
+  height: 300px;
+  background: #0284C7;
+  bottom: 20px;
+  right: -100px;
+}
+
+/* FEATURES */
+
+.features {
+  padding: 90px 8%;
+  background: #0E1120;
+  text-align: center;
+}
+
+.features h2 {
+  font-size: 34px;
+  margin-bottom: 55px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.feature {
+  padding: 35px 25px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  text-align: left;
+  transition: 0.3s;
+}
+
+.feature:hover {
+  transform: translateY(-7px);
+  border-color: #8B5CF6;
+  background: rgba(139,92,246,0.06);
+}
+
+.feature > span {
+  color: #38BDF8;
+  font-size: 32px;
+}
+
+.feature h3 {
+  margin-top: 22px;
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.feature p {
+  color: #A1A1AA;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* FOOTER */
+
+footer {
+  padding: 35px 20px;
+  text-align: center;
+  color: #52556A;
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+  .header {
+    padding: 0 5%;
+    height: 70px;
+  }
+
+  .header nav {
+    display: none;
+  }
+
+  .logo {
+    font-size: 23px;
+  }
+
+  .hero {
+    min-height: 570px;
+    padding: 100px 20px 70px;
+  }
+
+  .hero h1 {
+    letter-spacing: -2px;
+  }
+
+  .description {
+    font-size: 15px;
+  }
+
+  .features {
+    padding: 65px 6%;
+  }
+
+  .features h2 {
+    font-size: 27px;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
