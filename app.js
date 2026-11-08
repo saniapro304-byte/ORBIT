@@ -9,42 +9,90 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = (id) => document.getElementById(id);
 
 let currentUser = null;
+let currentProfile = null;
 let currentConversationId = null;
 let realtimeChannel = null;
-let conversations = [];
 let authMode = "login";
+let searchTimer = null;
 
-/* ---------- AUTHENTICATION ---------- */
+const defaultSettings = {
+  theme: "dark",
+  accent: "purple",
+  font_size: "medium",
+  language: "ru",
+  notifications: true,
+  sounds: true,
+  privacy: {
+    allow_messages: "everyone",
+    show_status: true
+  }
+};
 
-function showAuthMessage(message, error = false) {
-  $("auth-message").textContent = message;
-  $("auth-message").style.color = error ? "#FCA5A5" : "#38BDF8";
+let settings = structuredClone(defaultSettings);
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+function showMessage(id, message, success = false) {
+  const element = $(id);
+  if (!element) return;
+  element.textContent = message;
+  element.style.color = success ? "var(--success)" : "var(--danger)";
+}
+
+function showScreen(screen) {
+  $("landing").classList.toggle("hidden", screen !== "landing");
+  $("auth-screen").classList.toggle("hidden", screen !== "auth");
+  $("orbit-app").classList.toggle("hidden", screen !== "app");
 }
 
 function setAuthMode(mode) {
   authMode = mode;
   const signup = mode === "signup";
 
-  $("auth-title").textContent = signup ? "Создать аккаунт" : "С возвращением";
+  $("auth-title").textContent = signup
+    ? "Создать аккаунт"
+    : "Добро пожаловать";
+
   $("auth-subtitle").textContent = signup
-    ? "Зарегистрируйся в ORBIT."
-    : "Войди в свой аккаунт ORBIT.";
+    ? "Присоединяйся к ORBIT"
+    : "Войди в свой аккаунт ORBIT";
 
-  $("name-group").hidden = !signup;
-  $("switch-text").innerHTML = signup
-    ? 'Уже есть аккаунт? <button id="switch-mode" type="button">Войти</button>'
-    : 'Нет аккаунта? <button id="switch-mode" type="button">Зарегистрироваться</button>';
-
-  $("switch-mode").addEventListener("click", () => {
-    setAuthMode(authMode === "login" ? "signup" : "login");
-  });
-
+  $("name-group").classList.toggle("hidden", !signup);
+  $("password-group").classList.remove("hidden");
+  $("password").required = true;
   $("auth-submit").textContent = signup ? "Зарегистрироваться" : "Войти";
-  $("password").autocomplete = signup ? "new-password" : "current-password";
-  showAuthMessage("");
+  $("switch-text").textContent = signup ? "Уже есть аккаунт?" : "Нет аккаунта?";
+  $("switch-mode").textContent = signup ? "Войти" : "Создать аккаунт";
+  $("forgot-password").classList.toggle("hidden", signup);
+  showMessage("auth-message", "");
 }
 
-$("switch-mode").addEventListener("click", () => setAuthMode("signup"));
+$("landing-login").addEventListener("click", () => {
+  setAuthMode("login");
+  showScreen("auth");
+});
+
+$("landing-start").addEventListener("click", () => {
+  setAuthMode("signup");
+  showScreen("auth");
+});
+
+$("auth-home").addEventListener("click", (event) => {
+  event.preventDefault();
+  showScreen("landing");
+});
+
+$("switch-mode").addEventListener("click", () => {
+  setAuthMode(authMode === "login" ? "signup" : "login");
+});
 
 $("auth-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -58,36 +106,38 @@ $("auth-form").addEventListener("submit", async (event) => {
 
   try {
     if (authMode === "signup") {
-      if (displayName.length < 2) {
-        throw new Error("Имя должно содержать минимум 2 символа.");
-      }
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { display_name: displayName }
+          data: {
+            display_name: displayName
+          }
         }
       });
 
       if (error) throw error;
 
       if (data.session) {
-        showAuthMessage("Аккаунт создан! Добро пожаловать.");
+        await handleSession(data.session);
       } else {
-        showAuthMessage("Проверь почту и подтверди регистрацию.");
+        showMessage(
+          "auth-message",
+          "Регистрация почти завершена. Проверь почту и подтверди email.",
+          true
+        );
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) throw error;
-      showAuthMessage("Вход выполнен!");
+      await handleSession(data.session);
     }
   } catch (error) {
-    showAuthMessage(error.message, true);
+    showMessage("auth-message", error.message);
   } finally {
     $("auth-submit").disabled = false;
     $("auth-submit").textContent =
@@ -99,254 +149,440 @@ $("forgot-password").addEventListener("click", async () => {
   const email = $("email").value.trim();
 
   if (!email) {
-    showAuthMessage("Сначала введи email.", true);
+    showMessage("auth-message", "Сначала введи свой email.");
     return;
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email);
 
-  if (error) showAuthMessage(error.message, true);
-  else showAuthMessage("Письмо для восстановления отправлено.");
+  if (error) {
+    showMessage("auth-message", error.message);
+  } else {
+    showMessage("auth-message", "Письмо для сброса пароля отправлено.", true);
+  }
 });
 
-async function logout() {
+$("logout-button").addEventListener("click", async () => {
   const { error } = await supabase.auth.signOut();
-  if (error) alert(error.message);
-}
+  if (error) {
+    alert(error.message);
+    return;
+  }
 
-$("logout-button").addEventListener("click", logout);
-$("orbit-logout").addEventListener("click", logout);
+  currentUser = null;
+  currentProfile = null;
+  currentConversationId = null;
 
-$("open-orbit").addEventListener("click", openApplication);
+  if (realtimeChannel) {
+    await supabase.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
 
-/* ---------- APPLICATION ---------- */
-
-function openApplication() {
-  $("landing").hidden = true;
-  $("orbit-app").hidden = false;
-  $("orbit-current-email").textContent = currentUser.email || "Пользователь";
-  $("profile-avatar").textContent =
-    (currentUser.email || "O").charAt(0).toUpperCase();
-
-  loadConversations();
-}
-
-function showLanding() {
-  $("landing").hidden = false;
-  $("orbit-app").hidden = true;
-  $("user-panel").hidden = true;
-  $("auth-form").hidden = false;
-  $("forgot-password").hidden = false;
-  $("switch-text").hidden = false;
-}
+  showScreen("landing");
+});
 
 async function handleSession(session) {
-  currentUser = session?.user || null;
-
-  if (currentUser) {
-    $("auth-form").hidden = true;
-    $("forgot-password").hidden = true;
-    $("switch-text").hidden = true;
-    $("user-panel").hidden = false;
-    $("user-email").textContent = currentUser.email || "";
-  } else {
-    currentConversationId = null;
-    if (realtimeChannel) {
-      await supabase.removeChannel(realtimeChannel);
-      realtimeChannel = null;
-    }
-    showLanding();
+  if (!session?.user) {
+    currentUser = null;
+    showScreen("landing");
+    return;
   }
+
+  currentUser = session.user;
+  showScreen("app");
+
+  await loadProfile();
+  await loadConversations();
 }
 
-supabase.auth.onAuthStateChange((_event, session) => {
-  handleSession(session);
+async function loadProfile() {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Profile load:", error);
+    showMessage("settings-message", "Не удалось загрузить профиль: " + error.message);
+    return;
+  }
+
+  currentProfile = data;
+
+  if (!currentProfile) {
+    showMessage("settings-message", "Профиль пока не найден в базе данных.");
+    return;
+  }
+
+  const displayName = currentProfile.display_name || "Пользователь";
+  const username = currentProfile.username || "username";
+
+  $("sidebar-name").textContent = displayName;
+  $("sidebar-username").textContent = "@" + username;
+  $("sidebar-avatar").textContent = displayName.charAt(0).toUpperCase();
+
+  $("settings-display-name").value = currentProfile.display_name || "";
+  $("settings-username").value = currentProfile.username || "";
+  $("settings-bio").value = currentProfile.bio || "";
+
+  settings = {
+    ...structuredClone(defaultSettings),
+    ...(currentProfile.settings || {}),
+    privacy: {
+      ...defaultSettings.privacy,
+      ...(currentProfile.settings?.privacy || {})
+    }
+  };
+
+  applySettings();
+  fillSettingsForm();
+}
+
+function fillSettingsForm() {
+  $("theme-select").value = settings.theme;
+  $("accent-select").value = settings.accent;
+  $("font-size-select").value = settings.font_size;
+  $("language-select").value = settings.language;
+  $("notifications-toggle").checked = settings.notifications;
+  $("sounds-toggle").checked = settings.sounds;
+  $("privacy-messages").value = settings.privacy.allow_messages;
+  $("privacy-status").checked = settings.privacy.show_status;
+}
+
+function applySettings() {
+  let theme = settings.theme;
+
+  if (theme === "system") {
+    theme = window.matchMedia("(prefers-color-scheme: light)").matches
+      ? "light"
+      : "dark";
+  }
+
+  document.body.dataset.theme = theme;
+  document.body.dataset.accent = settings.accent;
+  document.body.dataset.font = settings.font_size;
+}
+
+$("theme-select").addEventListener("change", () => {
+  settings.theme = $("theme-select").value;
+  applySettings();
 });
 
-const { data: sessionData } = await supabase.auth.getSession();
-await handleSession(sessionData.session);
+$("accent-select").addEventListener("change", () => {
+  settings.accent = $("accent-select").value;
+  applySettings();
+});
 
-/* ---------- CONVERSATIONS ---------- */
+$("font-size-select").addEventListener("change", () => {
+  settings.font_size = $("font-size-select").value;
+  applySettings();
+});
+
+$("save-settings").addEventListener("click", async () => {
+  if (!currentUser) return;
+
+  settings.theme = $("theme-select").value;
+  settings.accent = $("accent-select").value;
+  settings.font_size = $("font-size-select").value;
+  settings.language = $("language-select").value;
+  settings.notifications = $("notifications-toggle").checked;
+  settings.sounds = $("sounds-toggle").checked;
+  settings.privacy = {
+    allow_messages: $("privacy-messages").value,
+    show_status: $("privacy-status").checked
+  };
+
+  applySettings();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ settings })
+    .eq("id", currentUser.id);
+
+  if (error) {
+    showMessage("settings-message", "Ошибка сохранения: " + error.message);
+  } else {
+    showMessage("settings-message", "Настройки сохранены!", true);
+  }
+});
+
+$("save-profile").addEventListener("click", async () => {
+  if (!currentUser) return;
+
+  const displayName = $("settings-display-name").value.trim();
+  const username = $("settings-username").value.trim().replace(/^@/, "").toLowerCase();
+  const bio = $("settings-bio").value.trim();
+
+  if (!displayName || !username) {
+    showMessage("profile-message", "Заполни имя и username.");
+    return;
+  }
+
+  if (!/^[a-z0-9_]{3,24}$/.test(username)) {
+    showMessage(
+      "profile-message",
+      "Ник: от 3 до 24 символов, только a-z, цифры и подчёркивание."
+    );
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({
+      display_name: displayName,
+      username,
+      bio
+    })
+    .eq("id", currentUser.id)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      showMessage("profile-message", "Этот username уже занят.");
+    } else {
+      showMessage("profile-message", "Ошибка: " + error.message);
+    }
+    return;
+  }
+
+  currentProfile = data;
+  $("sidebar-name").textContent = displayName;
+  $("sidebar-username").textContent = "@" + username;
+  $("sidebar-avatar").textContent = displayName.charAt(0).toUpperCase();
+
+  showMessage("profile-message", "Профиль сохранён!", true);
+});
+
+function switchView(viewName) {
+  ["chats", "search", "settings"].forEach((name) => {
+    $(name + "-view").classList.toggle("hidden", name !== viewName);
+  });
+
+  document.querySelectorAll(".nav-button[data-view]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === viewName);
+  });
+}
+
+document.querySelectorAll(".nav-button[data-view]").forEach((button) => {
+  button.addEventListener("click", () => switchView(button.dataset.view));
+});
+
+$("placeholder-search").addEventListener("click", () => switchView("search"));
+$("new-chat-button").addEventListener("click", () => switchView("search"));
+
+$("show-chats")?.addEventListener("click", () => switchView("chats"));
+$("show-search")?.addEventListener("click", () => switchView("search"));
+$("show-settings")?.addEventListener("click", () => switchView("settings"));
+
+$("user-search-input").addEventListener("input", () => {
+  clearTimeout(searchTimer);
+
+  const query = $("user-search-input").value.trim();
+
+  if (query.length < 2) {
+    $("search-results").innerHTML =
+      '<p class="muted">Введи минимум 2 символа для поиска.</p>';
+    return;
+  }
+
+  searchTimer = setTimeout(() => searchUsers(query), 350);
+});
+
+async function searchUsers(query) {
+  $("search-results").innerHTML = '<p class="muted">Ищем пользователей...</p>';
+
+  const searchTerm = query.replace(/^@/, "");
+
+  const { data, error } = await supabase.rpc("search_users", {
+    search_query: searchTerm
+  });
+
+  if (error) {
+    $("search-results").textContent = "Ошибка поиска: " + error.message;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    $("search-results").innerHTML =
+      '<p class="muted">Пользователи не найдены.</p>';
+    return;
+  }
+
+  $("search-results").innerHTML = data.map((user) => {
+    const name = escapeHTML(user.display_name || user.username || "Пользователь");
+    const username = escapeHTML(user.username || "");
+    const letter = escapeHTML(name.charAt(0).toUpperCase());
+
+    return `
+      <div class="search-result">
+        <div class="avatar">${letter}</div>
+        <div class="user-info">
+          <strong>${name}</strong>
+          <span>@${username}</span>
+        </div>
+        <button class="button primary start-chat-button"
+          data-user-id="${escapeHTML(user.id)}">
+          Написать
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".start-chat-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      startChat(button.dataset.userId);
+    });
+  });
+}
+
+async function startChat(otherUserId) {
+  if (!otherUserId || otherUserId === currentUser.id) return;
+
+  const { data, error } = await supabase.rpc("start_direct_conversation", {
+    p_other_user_id: otherUserId
+  });
+
+  if (error) {
+    alert("Не удалось создать диалог: " + error.message);
+    return;
+  }
+
+  let conversationId = data;
+
+  if (typeof data === "object" && data !== null) {
+    conversationId = data.id || data.conversation_id;
+  }
+
+  if (!conversationId) {
+    alert("Не удалось получить ID диалога от сервера.");
+    return;
+  }
+
+  await loadConversations();
+  await openConversation(conversationId, otherUserId);
+  switchView("chats");
+}
 
 async function loadConversations() {
   if (!currentUser) return;
 
-  $("conversation-list").innerHTML =
-    '<p class="empty-list">Загружаю диалоги...</p>';
-
-  const { data, error } = await supabase
+  const { data: memberships, error } = await supabase
     .from("conversation_members")
     .select("conversation_id")
     .eq("user_id", currentUser.id);
 
   if (error) {
-    $("conversation-list").innerHTML =
-      '<p class="empty-list">Не удалось загрузить диалоги.</p>';
-    console.error(error);
+    $("conversation-list").textContent =
+      "Ошибка загрузки чатов: " + error.message;
     return;
   }
 
-  conversations = data || [];
-
-  if (conversations.length === 0) {
+  if (!memberships || memberships.length === 0) {
     $("conversation-list").innerHTML =
-      '<p class="empty-list">Диалогов пока нет. Создай первый!</p>';
+      '<p class="muted empty-state">Пока нет диалогов. Найди человека!</p>';
     return;
   }
 
-  $("conversation-list").innerHTML = "";
+  $("conversation-list").innerHTML =
+    '<p class="muted">Загружаем диалоги...</p>';
 
-  for (const item of conversations) {
-    const button = document.createElement("button");
-    button.className = "conversation-item";
-    button.innerHTML =
-      '<span class="avatar">✦</span><span>Диалог ' +
-      item.conversation_id.slice(0, 8) +
-      "</span>";
+  const conversations = [];
 
-    button.addEventListener("click", () => {
-      openConversation(item.conversation_id);
+  for (const membership of memberships) {
+    const { data: members, error: memberError } = await supabase
+      .from("conversation_members")
+      .select("user_id")
+      .eq("conversation_id", membership.conversation_id);
+
+    if (memberError) continue;
+
+    const otherMember = members?.find(
+      (member) => member.user_id !== currentUser.id
+    );
+
+    if (!otherMember) continue;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, username, display_name")
+      .eq("id", otherMember.user_id)
+      .maybeSingle();
+
+    conversations.push({
+      id: membership.conversation_id,
+      profile
     });
-
-    $("conversation-list").appendChild(button);
   }
+
+  $("conversation-list").innerHTML = conversations.map((conversation) => {
+    const name = escapeHTML(
+      conversation.profile?.display_name ||
+      conversation.profile?.username ||
+      "Пользователь"
+    );
+
+    const username = escapeHTML(conversation.profile?.username || "");
+    const letter = escapeHTML(name.charAt(0).toUpperCase());
+
+    return `
+      <div class="conversation-item"
+        data-conversation-id="${escapeHTML(conversation.id)}"
+        data-user-id="${escapeHTML(conversation.profile?.id || "")}">
+        <div class="avatar">${letter}</div>
+        <div class="conversation-text">
+          <strong>${name}</strong>
+          <span>@${username}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".conversation-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      openConversation(
+        item.dataset.conversationId,
+        item.dataset.userId
+      );
+    });
+  });
 }
 
-async function createConversation(otherUserId) {
-  if (!currentUser) return;
-
-  if (otherUserId === currentUser.id) {
-    throw new Error("Нельзя создать диалог с самим собой.");
-  }
-
-  const { data, error } = await supabase.rpc(
-    "start_direct_conversation",
-    { p_other_user_id: otherUserId }
-  );
-
-  if (error) throw error;
-
-  const conversationId =
-    typeof data === "string" ? data : data?.id;
-
-  if (!conversationId) {
-    throw new Error("Функция не вернула ID диалога. Проверь RPC.");
-  }
-
-  await loadConversations();
-  await openConversation(conversationId);
-}
-
-/* ---------- NEW CHAT WINDOW ---------- */
-
-function showNewChatModal() {
-  $("new-chat-modal").hidden = false;
-  $("new-chat-error").textContent = "";
-  $("new-chat-user-id").value = "";
-  $("new-chat-user-id").focus();
-}
-
-function closeNewChatModal() {
-  $("new-chat-modal").hidden = true;
-}
-
-$("new-chat-button").addEventListener("click", showNewChatModal);
-$("welcome-new-chat").addEventListener("click", showNewChatModal);
-$("cancel-new-chat").addEventListener("click", closeNewChatModal);
-
-$("create-new-chat").addEventListener("click", async () => {
-  const userId = $("new-chat-user-id").value.trim();
-
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
-    $("new-chat-error").textContent = "Введи корректный UUID пользователя.";
-    return;
-  }
-
-  $("create-new-chat").disabled = true;
-  $("new-chat-error").textContent = "Создаю диалог...";
-
-  try {
-    await createConversation(userId);
-    closeNewChatModal();
-  } catch (error) {
-    console.error(error);
-    $("new-chat-error").textContent = error.message;
-  } finally {
-    $("create-new-chat").disabled = false;
-  }
-});
-
-/* ---------- MESSAGES ---------- */
-
-async function openConversation(conversationId) {
+async function openConversation(conversationId, otherUserId) {
   currentConversationId = conversationId;
 
-  $("chat-empty").hidden = true;
-  $("chat-window").hidden = false;
-  $("chat-title").textContent =
-    "Диалог " + conversationId.slice(0, 8);
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, username, display_name")
+    .eq("id", otherUserId)
+    .maybeSingle();
 
-  await loadMessages(conversationId);
-  subscribeToMessages(conversationId);
-}
-
-async function loadMessages(conversationId) {
-  const { data, error } = await supabase
-    .from("dm_messages")
-    .select("*")
-    .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    console.error(error);
-    $("messages-list").innerHTML =
-      '<p class="empty-list">Не удалось загрузить сообщения: ' +
-      escapeHTML(error.message) +
-      "</p>";
+  if (profileError) {
+    alert("Не удалось загрузить профиль собеседника.");
     return;
   }
 
-  renderMessages(data || []);
-}
+  $("chat-name").textContent =
+    profile?.display_name || profile?.username || "Пользователь";
 
-function renderMessages(messages) {
-  const list = $("messages-list");
-  list.innerHTML = "";
+  $("chat-username").textContent =
+    profile?.username ? "@" + profile.username : "";
 
-  if (!messages.length) {
-    list.innerHTML =
-      '<p class="empty-list">Пока нет сообщений. Напиши первым!</p>';
-    return;
-  }
+  $("chat-avatar").textContent =
+    ($("chat-name").textContent || "U").charAt(0).toUpperCase();
 
-  for (const message of messages) {
-    const bubble = document.createElement("div");
-    bubble.className = "message-bubble" +
-      (message.sender_id === currentUser.id ? " mine" : "");
+  $("chat-placeholder").classList.add("hidden");
+  $("active-chat").classList.remove("hidden");
 
-    const content = document.createElement("div");
-    content.textContent = message.content || "";
+  await loadMessages();
 
-    const time = document.createElement("small");
-    time.className = "message-time";
-    time.textContent = message.created_at
-      ? new Date(message.created_at).toLocaleString()
-      : "";
-
-    bubble.append(content, time);
-    list.appendChild(bubble);
-  }
-
-  list.scrollTop = list.scrollHeight;
-}
-
-function subscribeToMessages(conversationId) {
   if (realtimeChannel) {
-    supabase.removeChannel(realtimeChannel);
+    await supabase.removeChannel(realtimeChannel);
   }
 
   realtimeChannel = supabase
-    .channel("dm-" + conversationId)
+    .channel("messages-" + conversationId)
     .on(
       "postgres_changes",
       {
@@ -356,12 +592,67 @@ function subscribeToMessages(conversationId) {
         filter: "conversation_id=eq." + conversationId
       },
       (payload) => {
-        if (currentConversationId === conversationId) {
-          loadMessages(conversationId);
-        }
+        renderMessage(payload.new);
       }
     )
     .subscribe();
+}
+
+async function loadMessages() {
+  if (!currentConversationId) return;
+
+  $("messages").innerHTML = '<p class="muted">Загрузка сообщений...</p>';
+
+  const { data, error } = await supabase
+    .from("dm_messages")
+    .select("*")
+    .eq("conversation_id", currentConversationId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    $("messages").textContent = "Ошибка загрузки сообщений: " + error.message;
+    return;
+  }
+
+  $("messages").innerHTML = "";
+
+  (data || []).forEach(renderMessage);
+
+  $("messages").scrollTop = $("messages").scrollHeight;
+}
+
+function renderMessage(message) {
+  if (!message || !currentConversationId) return;
+
+  if (
+    document.querySelector(
+      '[data-message-id="' + CSS.escape(String(message.id)) + '"]'
+    )
+  ) return;
+
+  const mine = message.sender_id === currentUser.id;
+  const bubble = document.createElement("div");
+
+  bubble.className = "message-bubble" + (mine ? " mine" : "");
+  if (message.id) {
+    bubble.dataset.messageId = message.id;
+  }
+
+  const content = document.createElement("div");
+  content.textContent = message.content || "";
+
+  const time = document.createElement("span");
+  time.className = "message-time";
+  time.textContent = message.created_at
+    ? new Date(message.created_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    : "";
+
+  bubble.append(content, time);
+  $("messages").appendChild(bubble);
+  $("messages").scrollTop = $("messages").scrollHeight;
 }
 
 $("message-form").addEventListener("submit", async (event) => {
@@ -369,9 +660,9 @@ $("message-form").addEventListener("submit", async (event) => {
 
   const content = $("message-input").value.trim();
 
-  if (!content || !currentConversationId || !currentUser) return;
+  if (!content || !currentConversationId) return;
 
-  $("send-message").disabled = true;
+  $("message-input").disabled = true;
 
   const { error } = await supabase
     .from("dm_messages")
@@ -381,7 +672,7 @@ $("message-form").addEventListener("submit", async (event) => {
       content
     });
 
-  $("send-message").disabled = false;
+  $("message-input").disabled = false;
 
   if (error) {
     alert("Не удалось отправить сообщение: " + error.message);
@@ -389,17 +680,31 @@ $("message-form").addEventListener("submit", async (event) => {
   }
 
   $("message-input").value = "";
-  await loadMessages(currentConversationId);
+  await loadMessages();
 });
 
-/* ---------- HELPERS ---------- */
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT") {
+    currentUser = null;
+    currentProfile = null;
+    showScreen("landing");
+    return;
+  }
 
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[character]);
+  if (session && !currentUser) {
+    setTimeout(() => handleSession(session), 0);
+  }
+});
+
+const { data: initialSession } = await supabase.auth.getSession();
+
+if (initialSession.session) {
+  await handleSession(initialSession.session);
+} else {
+  showScreen("landing");
 }
+
+window.matchMedia("(prefers-color-scheme: light)")
+  .addEventListener("change", () => {
+    if (settings.theme === "system") applySettings();
+  });
