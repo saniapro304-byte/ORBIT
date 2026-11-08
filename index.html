@@ -5,133 +5,167 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0B0D16">
-  <meta name="description" content="ORBIT — твоя вселенная общения.">
   <title>ORBIT — Connect. Communicate. Create.</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="app.js"></script>
+  <link rel="stylesheet" href="./style.css">
 </head>
-
 <body>
-  <header class="header">
-    <a class="logo" href="#">ORBIT<span>.</span></a>
-    <nav>
-      <a href="#features">Возможности</a>
-      <a href="#about">О проекте</a>
-    </nav>
-    <a class="login-link" href="#login">Войти</a>
-  </header>
 
-  <main>
-    <section class="hero">
-      <div class="orb orb-one"></div>
-      <div class="orb orb-two"></div>
+  <div class="landing" id="landing">
+    <header class="site-header">
+      <a class="brand" href="#">ORBIT<span>.</span></a>
+      <nav>
+        <a href="#features">Возможности</a>
+        <a href="#auth-section">Аккаунт</a>
+      </nav>
+    </header>
 
-      <p class="eyebrow">YOUR SPACE. YOUR COMMUNITY.</p>
-      <h1>Твоя вселенная<br><span>общения.</span></h1>
-      <p class="description">
-        Общайся, создавай сообщества и оставайся на связи.
-        Всё необходимое — в одном пространстве.
-      </p>
-      <a class="primary-button" href="#login">
-        Начать путешествие <span>→</span>
-      </a>
-      <p class="slogan">CONNECT. COMMUNICATE. CREATE.</p>
-    </section>
+    <main>
+      <section class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-content">
+          <div class="eyebrow">YOUR SPACE. YOUR PEOPLE.</div>
+          <h1>Твоя вселенная<br>для <span>общения.</span></h1>
+          <p>Общайся, создавай сообщества и находи людей в одном пространстве.</p>
+          <a class="primary-link" href="#auth-section">Начать использовать ORBIT</a>
+        </div>
+        <div class="orbit-decoration">✦</div>
+      </section>
 
-    <section id="features" class="features">
-      <h2>Всё для твоего общения</h2>
-      <div class="feature-grid">
-        <article class="feature">
-          <span>✦</span>
-          <h3>Сообщества</h3>
-          <p>Создавай собственные пространства и собирай друзей.</p>
-        </article>
-        <article class="feature">
-          <span>◉</span>
-          <h3>Общение</h3>
-          <p>Переписывайся и делись идеями в реальном времени.</p>
-        </article>
-        <article class="feature">
-          <span>⌁</span>
-          <h3>Голос и видео</h3>
-          <p>Будь ближе к людям, где бы они ни находились.</p>
-        </article>
+      <section class="features" id="features">
+        <div class="section-heading">
+          <span class="eyebrow">EXPLORE ORBIT</span>
+          <h2>Всё для общения</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="feature-icon">◉</div>
+            <h3>Личные сообщения</h3>
+            <p>Общайся с друзьями в личных диалогах.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">✧</div>
+            <h3>Сообщества</h3>
+            <p>Создавай пространства и собирай людей по интересам.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">◎</div>
+            <h3>Голос и видео</h3>
+            <p>Возможность общаться не только текстом.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="auth-section" id="auth-section">
+        <div class="auth-card">
+          <div class="auth-logo">ORBIT<span>.</span></div>
+          <h2 id="auth-title">С возвращением</h2>
+          <p id="auth-subtitle">Войди в свой аккаунт ORBIT.</p>
+
+          <form id="auth-form">
+            <div class="auth-field" id="name-group" hidden>
+              <label for="display-name">Имя пользователя</label>
+              <input id="display-name" type="text" placeholder="Как тебя называть?" autocomplete="nickname">
+            </div>
+
+            <div class="auth-field">
+              <label for="email">Email</label>
+              <input id="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+            </div>
+
+            <div class="auth-field" id="password-group">
+              <label for="password">Пароль</label>
+              <input id="password" type="password" placeholder="Минимум 8 символов" autocomplete="current-password" required minlength="8">
+            </div>
+
+            <button class="auth-submit" id="auth-submit" type="submit">Войти</button>
+          </form>
+
+          <button class="text-button" id="forgot-password" type="button">Забыли пароль?</button>
+          <p class="auth-message" id="auth-message" role="status"></p>
+
+          <div class="auth-switch" id="switch-text">
+            Нет аккаунта?
+            <button id="switch-mode" type="button">Зарегистрироваться</button>
+          </div>
+
+          <div id="user-panel" hidden>
+            <p>Ты вошёл в ORBIT!</p>
+            <p id="user-email"></p>
+            <button id="open-orbit" type="button" class="auth-submit">Открыть приложение</button>
+            <button id="logout-button" type="button" class="text-button">Выйти</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <a class="brand" href="#">ORBIT<span>.</span></a>
+      <p>Connect. Communicate. Create.</p>
+    </footer>
+  </div>
+
+  <div id="orbit-app" class="orbit-app" hidden>
+    <aside class="sidebar">
+      <a class="brand sidebar-brand" href="#">ORBIT<span>.</span></a>
+
+      <div class="profile-card">
+        <div class="avatar" id="profile-avatar">O</div>
+        <div class="profile-info">
+          <strong>Мой аккаунт</strong>
+          <small id="orbit-current-email">Пользователь</small>
+        </div>
       </div>
-    </section>
 
-    <!-- AUTHENTICATION -->
-    <section id="login" class="auth-section">
-      <div class="auth-card">
-        <div class="auth-logo">ORBIT<span>.</span></div>
+      <button class="new-chat-button" id="new-chat-button">＋ Новый диалог</button>
 
-        <h2 id="auth-title">Добро пожаловать</h2>
-        <p id="auth-subtitle">Войди в свою вселенную общения</p>
+      <div class="sidebar-label">ЛИЧНЫЕ СООБЩЕНИЯ</div>
+      <div id="conversation-list" class="conversation-list">
+        <p class="empty-list">Загрузка диалогов...</p>
+      </div>
 
-        <form id="auth-form">
-          <div id="name-group" class="auth-field" hidden>
-            <label for="display-name">Твоё имя</label>
-            <input
-              id="display-name"
-              type="text"
-              placeholder="Например, Alex"
-              maxlength="40"
-              autocomplete="name"
-            >
+      <button class="sidebar-logout" id="orbit-logout">Выйти из аккаунта</button>
+    </aside>
+
+    <main class="chat-main">
+      <section id="chat-empty" class="welcome-screen">
+        <div class="welcome-symbol">✦</div>
+        <h1>Добро пожаловать в ORBIT</h1>
+        <p>Выбери диалог или начни общение с новым человеком.</p>
+        <button id="welcome-new-chat" class="primary-button">＋ Новый диалог</button>
+      </section>
+
+      <section id="chat-window" class="chat-window" hidden>
+        <header class="chat-header">
+          <div class="avatar">✦</div>
+          <div>
+            <strong id="chat-title">Личный диалог</strong>
+            <small>ORBIT messages</small>
           </div>
+        </header>
 
-          <div class="auth-field">
-            <label for="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              autocomplete="email"
-              required
-            >
-          </div>
+        <div id="messages-list" class="messages-list">
+          <p class="empty-list">Сообщений пока нет.</p>
+        </div>
 
-          <div class="auth-field" id="password-group">
-            <label for="password">Пароль</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Минимум 8 символов"
-              minlength="8"
-              autocomplete="current-password"
-              required
-            >
-          </div>
-
-          <button id="auth-submit" class="auth-submit" type="submit">
-            Войти
-          </button>
+        <form id="message-form" class="message-form">
+          <input id="message-input" type="text" placeholder="Напиши сообщение..." maxlength="4000" autocomplete="off" required>
+          <button type="submit" id="send-message">Отправить</button>
         </form>
+      </section>
+    </main>
+  </div>
 
-        <button id="forgot-password" class="auth-text-button" type="button">
-          Забыли пароль?
-        </button>
+  <div class="modal-backdrop" id="new-chat-modal" hidden>
+    <div class="modal-card">
+      <button class="modal-close" id="cancel-new-chat" aria-label="Закрыть">×</button>
+      <h2>Новый диалог</h2>
+      <p>Введи UUID пользователя Supabase, с которым хочешь начать общение.</p>
+      <input id="new-chat-user-id" type="text" placeholder="UUID пользователя">
+      <p class="error-message" id="new-chat-error"></p>
+      <button class="primary-button" id="create-new-chat">Создать диалог</button>
+    </div>
+  </div>
 
-        <p id="auth-message" class="auth-message" role="status" aria-live="polite"></p>
-
-        <div class="auth-switch">
-          <span id="switch-text">Нет аккаунта?</span>
-          <button id="switch-mode" type="button">Создать аккаунт</button>
-        </div>
-
-        <div id="user-panel" hidden>
-          <p id="user-email"></p>
-          <button id="logout-button" class="auth-submit" type="button">
-            Выйти из аккаунта
-          </button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer id="about">
-    <div class="logo">ORBIT<span>.</span></div>
-    <p>CONNECT. COMMUNICATE. CREATE.</p>
-    <p>© 2026 ORBIT. All rights reserved.</p>
-  </footer>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
