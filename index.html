@@ -3,54 +3,44 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0B0D16">
   <title>ORBIT — Connect. Communicate. Create.</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="landing" class="landing">
+  <main id="landing" class="landing">
     <header class="topbar">
       <a class="brand" href="#">◉ ORBIT</a>
-      <button id="landing-login" class="button secondary">Войти</button>
+      <button class="button secondary" id="landing-login">Войти</button>
     </header>
-
-    <main class="hero">
+    <section class="hero">
       <div class="orb">◉</div>
       <p class="eyebrow">YOUR SPACE. YOUR PEOPLE.</p>
       <h1>Connect.<br><span>Communicate.</span><br>Create.</h1>
-      <p class="hero-description">
-        Твоё пространство для общения, друзей и сообществ.
-      </p>
-      <button id="landing-start" class="button primary">Начать</button>
-    </main>
-  </div>
+      <p>Твоё пространство для общения, друзей и сообществ.</p>
+      <button class="button primary" id="landing-start">Начать</button>
+    </section>
+  </main>
 
   <section id="auth-screen" class="auth-screen hidden">
     <div class="auth-card">
       <a class="brand" href="#" id="auth-home">◉ ORBIT</a>
       <h2 id="auth-title">Добро пожаловать</h2>
       <p id="auth-subtitle">Войди в свой аккаунт ORBIT</p>
-
       <form id="auth-form">
         <div id="name-group" class="hidden">
           <label for="display-name">Имя</label>
           <input id="display-name" type="text" placeholder="Твоё имя">
         </div>
-
         <label for="email">Email</label>
         <input id="email" type="email" placeholder="name@example.com" required>
-
         <div id="password-group">
           <label for="password">Пароль</label>
           <input id="password" type="password" placeholder="Минимум 8 символов" minlength="8">
         </div>
-
-        <button id="auth-submit" class="button primary full" type="submit">
-          Войти
-        </button>
+        <button id="auth-submit" class="button primary full" type="submit">Войти</button>
       </form>
-
       <button id="forgot-password" class="text-button">Забыли пароль?</button>
       <p id="auth-message" class="message"></p>
       <p class="switch-line">
@@ -62,17 +52,13 @@
 
   <main id="orbit-app" class="app hidden">
     <aside class="sidebar">
-      <div class="sidebar-brand">
-        <span>◉</span> ORBIT
-      </div>
-
-      <button id="show-search" class="nav-button">⌕ Поиск людей</button>
-      <button id="show-chats" class="nav-button active">▤ Сообщения</button>
-      <button id="show-settings" class="nav-button">⚙ Настройки</button>
-
+      <div class="sidebar-brand">◉ ORBIT</div>
+      <button class="nav-button active" data-view="chats">▤ Сообщения</button>
+      <button class="nav-button" data-view="search">⌕ Поиск людей</button>
+      <button class="nav-button" data-view="settings">⚙ Настройки</button>
       <div class="sidebar-bottom">
-        <div id="sidebar-user" class="sidebar-user">
-          <div class="avatar">O</div>
+        <div class="sidebar-user">
+          <div class="avatar" id="sidebar-avatar">O</div>
           <div class="user-info">
             <strong id="sidebar-name">Пользователь</strong>
             <span id="sidebar-username">@username</span>
@@ -87,13 +73,12 @@
         <div class="chat-list">
           <div class="view-heading">
             <h2>Сообщения</h2>
-            <button id="new-chat-button" class="icon-button" title="Новый чат">＋</button>
+            <button id="new-chat-button" class="icon-button" title="Найти человека">＋</button>
           </div>
           <div id="conversation-list" class="conversation-list">
-            <p class="muted empty-state">Загрузка чатов...</p>
+            <p class="muted">Загрузка чатов...</p>
           </div>
         </div>
-
         <div class="chat-window">
           <div id="chat-placeholder" class="placeholder">
             <div class="placeholder-icon">◉</div>
@@ -101,7 +86,6 @@
             <p>Выбери диалог или найди нового пользователя.</p>
             <button id="placeholder-search" class="button primary">Найти людей</button>
           </div>
-
           <div id="active-chat" class="active-chat hidden">
             <div class="chat-header">
               <div class="avatar" id="chat-avatar">U</div>
@@ -121,16 +105,16 @@
 
       <section id="search-view" class="view hidden">
         <div class="content-panel">
-          <div class="view-heading">
-            <h2>Поиск людей</h2>
-          </div>
+          <h2>Поиск людей</h2>
           <p class="muted">Найди друзей по имени или уникальному нику.</p>
           <div class="search-bar">
             <span>⌕</span>
-            <input id="user-search-input" type="search" placeholder="Имя или @username..." autocomplete="off">
+            <input id="user-search-input" type="search"
+              placeholder="Введи имя или @username..."
+              autocomplete="off">
           </div>
           <div id="search-results" class="results">
-            <p class="muted">Введи минимум 2 символа.</p>
+            <p class="muted">Введи минимум 2 символа для поиска.</p>
           </div>
         </div>
       </section>
@@ -138,19 +122,20 @@
       <section id="settings-view" class="view hidden">
         <div class="content-panel settings-panel">
           <h2>Настройки</h2>
-          <p class="muted">Настрой ORBIT под себя.</p>
+          <p class="muted">Твоё пространство — твои правила.</p>
 
           <section class="settings-section">
-            <h3>Профиль</h3>
+            <h3>Мой профиль</h3>
             <label for="settings-display-name">Отображаемое имя</label>
-            <input id="settings-display-name" type="text" maxlength="40">
-
-            <label for="settings-username">Имя пользователя</label>
-            <input id="settings-username" type="text" maxlength="24" placeholder="username">
-            <p class="hint">Только латинские буквы, цифры и подчёркивание.</p>
-
+            <input id="settings-display-name" maxlength="40">
+            <label for="settings-username">Уникальный username</label>
+            <div class="username-input">
+              <span>@</span>
+              <input id="settings-username" maxlength="24" placeholder="username">
+            </div>
+            <p class="hint">Латинские буквы, цифры и подчёркивание.</p>
             <label for="settings-bio">О себе</label>
-            <textarea id="settings-bio" maxlength="160" placeholder="Расскажи немного о себе..."></textarea>
+            <textarea id="settings-bio" maxlength="160" placeholder="Расскажи о себе..."></textarea>
             <button id="save-profile" class="button primary">Сохранить профиль</button>
             <p id="profile-message" class="message"></p>
           </section>
@@ -161,10 +146,9 @@
             <select id="theme-select">
               <option value="dark">Тёмная</option>
               <option value="light">Светлая</option>
-              <option value="system">Как в системе</option>
+              <option value="system">Системная</option>
             </select>
-
-            <label for="accent-select">Цвет акцента</label>
+            <label for="accent-select">Цвет интерфейса</label>
             <select id="accent-select">
               <option value="purple">Фиолетовый</option>
               <option value="blue">Голубой</option>
@@ -172,7 +156,6 @@
               <option value="green">Зелёный</option>
               <option value="orange">Оранжевый</option>
             </select>
-
             <label for="font-size-select">Размер текста</label>
             <select id="font-size-select">
               <option value="small">Маленький</option>
@@ -204,12 +187,11 @@
 
           <section class="settings-section">
             <h3>Приватность</h3>
-            <label for="privacy-messages">Кто может отправлять сообщения</label>
+            <label for="privacy-messages">Кто может писать</label>
             <select id="privacy-messages">
               <option value="everyone">Все пользователи</option>
               <option value="friends">Только друзья</option>
             </select>
-
             <label class="setting-toggle">
               <span>Показывать мой статус</span>
               <input id="privacy-status" type="checkbox">
@@ -222,17 +204,6 @@
       </section>
     </section>
   </main>
-
-  <div id="new-chat-modal" class="modal hidden">
-    <div class="modal-card">
-      <button id="close-modal" class="modal-close">×</button>
-      <h2>Новый диалог</h2>
-      <p class="muted">Введи user пользователя чтобы начать диалог.</p>
-      <input id="other-user-id" type="text" placeholder="UUID пользователя">
-      <button id="create-chat-button" class="button primary full">Создать диалог</button>
-      <p id="new-chat-message" class="message"></p>
-    </div>
-  </div>
 
   <script type="module" src="app.js"></script>
 </body>
